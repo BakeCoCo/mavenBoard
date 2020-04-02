@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.freeBoard.mapper.FreeBoardMapper">
+		
+	<select id="listTest" resultType="java.util.HashMap" parameterType="hashMap"> <!-- resultType="ino.web.board.dto.BoardDto" -->
+		<![CDATA[
+		SELECT * FROM (
+			SELECT A.*, ROWNUM AS RNUM, COUNT(*) OVER() AS TOTAL FROM(
+		]]>
+				SELECT NUM,
+				TITLE,
+				NAME,
+				TO_CHAR(REGDATE,'YYYY/MM/DD') REGDATE,
+				CONTENT
+				FROM FREEBOARD
+				WHERE 1=1
+				<if test="selected.equals('DECODE001') &amp;&amp; !find.equals('') ">
+					 AND NUM=#{find}
+				</if>
+				<if test="selected.equals('DECODE002') &amp;&amp; !find.equals('') ">
+					AND TITLE LIKE '%'||#{find}||'%'
+				</if>
+				<if test="!rega.equals('') &amp;&amp; !regb.equals('')" >
+					AND TO_CHAR(REGDATE,'YYYYMMDD') BETWEEN #{rega} AND #{regb}
+				</if>
+				ORDER BY LPAD( NUM, 5 ) DESC
+		<![CDATA[ 	) A ) WHERE RNUM BETWEEN	]]>
+		#{startNo} AND #{endNo}
+	</select>
+		
+	
+	<!-- totalCount -->
+	<select id="freeBoardTotalCount" resultType="int" parameterType="hashMap">
+		SELECT COUNT (*) FROM FREEBOARD WHERE 1=1
+				<if test="selected.equals('DECODE001') &amp;&amp; !find.equals('')">
+					 AND NUM=#{find}
+				</if>
+				<if test="selected.equals('DECODE002') &amp;&amp; !find.equals('')">
+					AND TITLE LIKE '%'||#{find}||'%'
+				</if>
+				<if test="!rega.equals('') &amp;&amp; !regb.equals('')" >
+					AND TO_CHAR(REGDATE,'YYYYMMDD') BETWEEN #{rega} AND #{regb}
+				</if>
+	</select>
+	
+	<insert id="freeBoardInsertPro"  parameterType="hashMap">
+		INSERT INTO FREEBOARD(NUM, TITLE, NAME, REGDATE, CONTENT)
+		VALUES( FREEBOARDNUM_SEQ.NEXTVAL, #{title}, #{name}, SYSDATE, #{content})
+	</insert>
+	
+	<select id="freeBoardDetailByNum" resultType="hashMap"  parameterType="hashMap">
+		SELECT NUM, TITLE, NAME, TO_CHAR(REGDATE,'YYYY/MM/DD') REGDATE, CONTENT FROM FREEBOARD
+		WHERE NUM=#{NUM}
+	</select>
+	
+	<update id="freeBoardModify"  parameterType="hashMap">
+		UPDATE FREEBOARD
+		SET TITLE = #{title}
+				, CONTENT = #{content}
+		WHERE NUM = #{num}
+	</update>
+	
+	<update id="freeBoardDelete"  parameterType="hashMap">
+		DELETE FROM FREEBOARD
+		WHERE NUM
+		= #{num}
+	</update>
+	
+	<select id="freeBoardNewNum"  parameterType="hashMap">
+		SELECT MAX(NUM)
+		FROM FREEBOARD
+	</select>
+</mapper>

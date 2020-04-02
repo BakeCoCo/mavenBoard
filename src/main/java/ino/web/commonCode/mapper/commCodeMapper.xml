@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.commonCode.mapper">
+	
+	<select id="common" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT * 
+		FROM MASTERTABLE A , DETAIL B
+		WHERE A.CODE = B.CODE
+		AND A.CODE = #{CODE}
+		AND B.USE_YN = #{USEYN}
+	</select>
+	
+	<select id="selectCommonCodeList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT * FROM MASTERTABLE
+	</select>
+	
+	<select id="DetailCodeList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT * FROM DETAIL WHERE CODE = #{CODE}
+	</select>
+	
+	<!-- (#{code.CODE}, #{code.DECODE}, #{code.DECODENAME}, #{code.USEYN}) -->
+	<!-- ('${code.CODE}', '${code.DECODE}', '${code.DECODENAME}', '${code.USEYN}') -->
+	
+	<insert id="insertCode" parameterType="java.util.List">
+	 	INSERT ALL
+			<foreach collection="list" item="code" separator=" " >
+				INTO DETAIL (CODE, DECODE, DECODE_NAME, USE_YN)
+				VALUES(#{code.CODE}, #{code.DECODE}, #{code.DECODENAME}, #{code.USEYN})
+			</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	
+	<delete id="deleteCode" parameterType="java.util.List">
+		DELETE FROM DETAIL
+		<where>
+			<foreach collection="list" item="code" separator=" OR ">
+				(DECODE = #{code.DECODE})
+			</foreach>
+		</where>
+	</delete>
+	
+	<update id="updateCode" parameterType="java.util.List">
+		<foreach collection="list" item="code" separator=";" open="DECLARE BEGIN" close="; END;">
+			UPDATE DETAIL SET DECODE_NAME = (#{code.DECODENAME}), DECODE = (#{code.UPCODE})
+			WHERE DECODE = (#{code.DECODE})
+		</foreach>
+	</update>
+	
+	<select id="GList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT * FROM GBOARD
+	</select>
+	
+	<select id="obList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT * FROM OBBOARD,GBOARD WHERE GROUPID= #{GSEL} ORDER BY OBID
+	</select>
+	
+	<select id="mapList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT G.USE_YN, G.GROUPID, M.OBID, M.OBNAME, G.GROUPNAME, M.DEPTH, M.HIGH_OB FROM
+		(SELECT * FROM GBOARD ) G
+		JOIN
+		(SELECT * FROM MAPING ) M
+		ON G.GROUPID = M.GROUPID
+		AND M.GROUPID= #{GSEL}
+	</select>
+	
+	<delete id="deleteMap" parameterType="java.util.List">
+		DELETE FROM MAPING
+		<where>
+			<foreach collection="list" item="GR" separator=" OR ">
+				(GROUPID = '${GR.GID}' AND OBID = '${GR.OBID}')
+			</foreach>
+		</where>
+	</delete>
+	
+	<insert id="insertMap" parameterType="java.util.List">
+		INSERT ALL
+		<foreach collection="list" item="GR" separator=" " >
+			INTO MAPING (GROUPID, OBID, OBNAME, DEPTH, HIGH_OB)
+			VALUES('${GR.GID}', '${GR.OBID}', '${GR.OBNAME}' , '${GR.DEPTH}' , '${GR.HIGH}')
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	
+</mapper>
